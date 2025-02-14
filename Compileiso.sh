@@ -13,12 +13,18 @@ echo
 echo "Please enter the name the Debian installer ISO:"
 read -p "Enter the path to the ISO file: " iso_path
 echo
-echo "Please select the preseed file for Server you want to use:"
-read -p "Enter the name of the Server Preseed file: " preseedServer
+read -p "Do you want to use the predefined preseed files (Yes or No): " JesORNo
 echo
-echo "Please select the preseed file for Desktop you want to use:"
-read -p "Enter the name of the Desktop Preseed file: " preseedDesktop
-clear
+if [ $JesORNo == "Yes" ]; then
+    isopreseedDesktopIn=preseed.cfg
+    isopreseedServerIn=preseed.cfg
+else
+    echo "Please select the preseed file for Server you want to use:"
+    read -p "Enter the name of the Server Preseed file: " preseedServer
+    echo
+    echo "Please select the preseed file for Desktop you want to use:"
+    read -p "Enter the name of the Desktop Preseed file: " preseedDesktop
+fi
 
 isoOut=preseed-${isoIn}
 
@@ -31,7 +37,7 @@ sudo umount /mnt/iso
 sudo cp ${isopreseedDesktopIn} /mnt/iso-new
 sudo cp ${preseedServer} /mnt/iso-new
 
-# sudo cd /mnt/iso-new
+sudo cd /mnt/iso-new
 sudo mv ${preseedDesktop} preseeddesktop1.cfg
 sudo mv ${preseedServer} preseedserver1.cfg
 
@@ -48,7 +54,7 @@ label auto-wipe-desktop
 EOF
 
 
-# cd
+cd ~/Debian-Preseeding
 
 sudo genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o $isoOut /mnt/iso-new
 
