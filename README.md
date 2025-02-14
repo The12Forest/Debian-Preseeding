@@ -1,6 +1,6 @@
 # Debian Preseeding
 
-This repository contains a preseed configuration file (`preseed.cfg`) for automating the installation of Debian Linux.
+This repository contains preseed configuration files (`preseed.cfg`) for automating the installation of Debian Linux.
 
 ## What is Preseeding?
 
@@ -14,7 +14,7 @@ To use the `preseed.cfg` file for a Debian installation, follow these steps:
 
 2. **Modify the `preseed.cfg`**: Change the password in the Preseedfile how you like it. I recomend a Hash bat you can alsow define it in planetext.
 
-3. **Modify the ISO**: Add the `preseed.cfg` file to the ISO. This can be done using tools like `genisoimage` or `xorriso`.
+3. **Modify the ISO**: Add the `preseed.cfg` file to the ISO. This can be done using tools like `genisoimage` or `xorriso`. If you don't know how, youtube will be your best frend.
 
 4. **Boot from the ISO**: Boot the target machine from the modified ISO.
 
