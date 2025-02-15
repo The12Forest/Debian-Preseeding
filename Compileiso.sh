@@ -1,39 +1,104 @@
 #!/bin/bash
-
 rm -f ./preseed-*.iso
+current_dir=$(pwd)
+clear
+while true; do
+    read -p "Do you want to use the predefined preseed files (Yes or No):   " YesORNo
+    if [[ "$YesORNo" =~ ^(Yes|No)$ ]]; then
+        break
+    else
+        echo "Invalid input. Please enter 'Yes' or 'No'."
+    fi
+done
+
+while true; do
+    read -p "Do you want to download Debian 12.9 (Yes or No):               " YesORNoD
+    if [[ "$YesORNoD" =~ ^(Yes|No)$ ]]; then
+        break
+    else
+        echo "Invalid input. Please enter 'Yes' or 'No'."
+    fi
+done
 
 # Setting up wariables
 echo
-echo Files in your current directory:
+if [ "$YesORNoD" == "No" ]; then
+    clear
+    echo Files in your current directory:
+    ls
+    echo
+    echo "Please enter the name the Debian installer ISO:"
+    read -p "Enter the path to the ISO file: " iso_path
+    echo
+fi
 
-ls
-
-echo
-echo
-echo "Please enter the name the Debian installer ISO:"
-read -p "Enter the path to the ISO file: " iso_path
-echo
-read -p "Do you want to use the predefined preseed files (Yes or No): " JesORNo
-echo
-if [ $JesORNo == "Yes" ]; then
+if [ "$YesORNo" == "Yes" ]; then
     isopreseedDesktopIn=preseedDesktop.cfg
     isopreseedServerIn=preseedServer.cfg
     isopreseedUndefinedIn=preseedUndefined.cfg
+#     isopreseedDesktopIn="$current_dir"/preseedDesktop.cfg
+#     isopreseedServerIn="$current_dir"/preseedServer.cfg
+#     isopreseedUndefinedIn="$current_dir"/preseedUndefined.cfg
 else
-    echo "Please select the preseed file for Server you want to use:"
-    read -p "Enter the name of the Server Preseed file: " preseedServer
+    clear
+    echo Files in your current directory:
+    ls
     echo
-    echo "Please select the preseed file for Desktop you want to use:"
-    read -p "Enter the name of the Desktop Preseed file: " preseedDesktop
+    echo "Please select the preseed file for Server that you want to use:"
+    read -p "Enter the path to the file: " preseedServer
+    clear
+    echo Files in your current directory:
+    ls
     echo
-    echo "Please select the preseed file for Undefined you want to use:"
-    read -p "Enter the name of the Undefined Preseed file: " preseedDesktop
+    echo "Please select the preseed file for Desktop that you want to use:"
+    read -p "Enter the path to the file: " preseedDesktop
+    clear
+    echo Files in your current directory:
+    ls
+    echo
+    echo "Please select the preseed file for Undefined that you want to use:"
+    read -p "Enter the path to the file: " preseedDesktop
 fi
-isoOut="preseed-$(basename "$iso_path")"
-current_dir=$(pwd)
+clear
+printf "Instaling required packages"
+sleep 0.3
+printf "."
+sleep 0.3
+printf "."
+sleep 0.3
+printf "."
+sleep 0.3
+printf "."
+sleep 0.3
+printf "."
+echo
 
+# Install required packages
+if [ "$YesORNoD" == "Yes" ]; then
+    sudo apt-get install genisoimage isolinux syslinux-utils squashfs-tools curl -y
+    clear
+    curl -O https://debian.ethz.ch/debian-cd/12.9.0/amd64/iso-cd/debian-12.9.0-amd64-netinst.iso
+    iso_path=debian-12.9.0-amd64-netinst.iso
+else
+    sudo apt-get install genisoimage isolinux syslinux-utils squashfs-tools -y
+fi
+
+isoOut="preseed-$(basename "$iso_path")"
 
 # Creating Working Directory
+clear
+printf "Creating content for ISO Image"
+sleep 0.3
+printf "."
+sleep 0.3
+printf "."
+sleep 0.3
+printf "."
+sleep 0.3
+printf "."
+sleep 0.3
+printf "."
+echo
 
 sudo mkdir -p /mnt/iso
 sudo mkdir -p /mnt/iso-new
@@ -42,20 +107,16 @@ sudo mount -o loop,rw "$iso_path" /mnt/iso
 sudo cp -rT /mnt/iso/ /mnt/iso-new/
 sudo umount /mnt/iso
 
-
 # Copy Preseed Files
-
 sudo cp "$isopreseedDesktopIn" /mnt/iso-new
 sudo cp "$preseedServer" /mnt/iso-new
 sudo cp "$preseedUndefined" /mnt/iso-new
-
 cd /mnt/iso-new
 sudo mv "$preseedDesktop" preseeddesktop1.cfg
 sudo mv "$preseedServer" preseedserver1.cfg
 sudo mv "$preseedUndefined" preseedundefined1.cfg
 
 # Creating installer Menu entries
-
 sudo tee -a /mnt/iso-new/isolinux/adtxt.cfg > /dev/null <<EOF
 label auto-wipe-server
         menu label ^Automatic Server install
@@ -74,16 +135,43 @@ label auto-wipe-undefined
 EOF
 
 
-cd "$current_dir"
-
 # Creating the new ISO
+clear
+printf "Creating ISO Image"
+sleep 0.3
+printf "."
+sleep 0.3
+printf "."
+sleep 0.3
+printf "."
+sleep 0.3
+printf "."
+sleep 0.3
+printf "."
+echo
 
+cd "$current_dir"
 sudo genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o "$isoOut" /mnt/iso-new
 sudo isohybrid "$isoOut"
 
 # Cleanup Working Directory
+echo "Cleaning up Working Directory..."
 sudo rm -rf /mnt/iso
 sudo rm -rf /mnt/iso-new
+
+clear
+printf "Preparing end Screen"
+MD5="MD5:\t\t\t$(md5sum "$isoOut" | cut -d' ' -f1)\n"
+printf "."
+SHA1="SHA1:\t\t\t$(sha1sum "$isoOut" | cut -d' ' -f1)\n"
+printf "."
+SHA256="SHA256:\t\t\t$(sha256sum "$isoOut" | cut -d' ' -f1)\n"
+printf "."
+SHA512="SHA512:\t\t\t$(sha512sum "$isoOut" | cut -d' ' -f1)\n"
+printf "."
+sleep 0.3
+printf "."
+sleep 2
 
 # Backtalk to the user
 clear
@@ -95,31 +183,17 @@ printf "Preseed Server:   \t%s\n" "$isopreseedServerIn"
 printf "Preseed Undefined:\t%s\n" "$isopreseedUndefinedIn"
 printf "Working Dir:      \t%s\n" "$current_dir"
 printf "Path:             \t%s\n" "$current_dir"
-printf "Name:             \t%s\n" "$isoOut"
 printf "Full Path:        \t%s/%s\n" "$current_dir" "$isoOut"
 printf "Size:             \t%s\n" "$(du -h "$isoOut" | cut -f1)"
 printf "Permissions:      \t%s\n" "$(stat -c %a "$isoOut")"
 printf "Owner:            \t%s\n" "$(stat -c %U "$isoOut")"
 printf "Group:            \t%s\n" "$(stat -c %G "$isoOut")"
 echo
+echo
 echo Hashes:
-printf "MD5:              \t%s\n" "$(md5sum "$isoOut" | cut -d' ' -f1)"
-printf "SHA1:             \t%s\n" "$(sha1sum "$isoOut" | cut -d' ' -f1)"
-printf "SHA256:           \t%s\n" "$(sha256sum "$isoOut" | cut -d' ' -f1)"
-printf "SHA512:           \t%s\n" "$(sha512sum "$isoOut" | cut -d' ' -f1)"
-printf "SHA3-256:         \t%s\n" "$(sha3sum -a 256 "$isoOut" | cut -d' ' -f1)"
-printf "SHA3-512:         \t%s\n" "$(sha3sum -a 512 "$isoOut" | cut -d' ' -f1)"
-printf "BLAKE2b-256:      \t%s\n" "$(b2sum -l 256 "$isoOut" | cut -d' ' -f1)"
-printf "BLAKE2b-512:      \t%s\n" "$(b2sum -l 512 "$isoOut" | cut -d' ' -f1)"
-printf "CRC32:            \t%s\n" "$(cksum "$isoOut" | cut -d' ' -f1)"
-printf "CRC64:            \t%s\n" "$(cksum -o 1 "$isoOut" | cut -d' ' -f1)"
-printf "Tiger:            \t%s\n" "$(tiger "$isoOut" | cut -d' ' -f1)"
-printf "Whirlpool:        \t%s\n" "$(whirlpool "$isoOut" | cut -d' ' -f1)"
-printf "RIPEMD160:        \t%s\n" "$(ripemd160 "$isoOut" | cut -d' ' -f1)"
-printf "GOST:             \t%s\n" "$(gost "$isoOut" | cut -d' ' -f1)"
-printf "Skein-256:        \t%s\n" "$(skein -l 256 "$isoOut" | cut -d' ' -f1)"
-printf "Skein-512:        \t%s\n" "$(skein -l 512 "$isoOut" | cut -d' ' -f1)"
-printf "Skein-1024:       \t%s\n" "$(skein -l 1024 "$isoOut" | cut -d' ' -f1)"
-
+printf $MD5
+printf $SHA1
+printf $SHA256
+printf $SHA512
 echo
 echo "Done! Thank you for using this script. Have a nice day!"
