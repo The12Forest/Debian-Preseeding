@@ -61,15 +61,15 @@ else
 fi
 clear
 printf "Instaling required packages"
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
 echo
 
@@ -88,15 +88,15 @@ isoOut="preseed-$(basename "$iso_path")"
 # Creating Working Directory
 clear
 printf "Creating content for ISO Image"
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
 echo
 
@@ -138,15 +138,15 @@ EOF
 # Creating the new ISO
 clear
 printf "Creating ISO Image"
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
 echo
 
@@ -169,9 +169,9 @@ SHA256="SHA256:\t\t\t$(sha256sum "$isoOut" | cut -d' ' -f1)\n"
 printf "."
 SHA512="SHA512:\t\t\t$(sha512sum "$isoOut" | cut -d' ' -f1)\n"
 printf "."
-sleep 0.3
+sleep 0.2
 printf "."
-sleep 2
+sleep 0.7
 
 # Backtalk to the user
 clear
@@ -181,7 +181,6 @@ printf "ISO:              \t%s\n" "$iso_path"
 printf "Preseed Desktop:  \t%s\n" "$isopreseedDesktopIn"
 printf "Preseed Server:   \t%s\n" "$isopreseedServerIn"
 printf "Preseed Undefined:\t%s\n" "$isopreseedUndefinedIn"
-printf "Working Dir:      \t%s\n" "$current_dir"
 printf "Path:             \t%s\n" "$current_dir"
 printf "Full Path:        \t%s/%s\n" "$current_dir" "$isoOut"
 printf "Size:             \t%s\n" "$(du -h "$isoOut" | cut -f1)"
