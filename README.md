@@ -14,7 +14,7 @@ To use the `preseedServer.cfg`/`preseedDesktop.cfg`/`preseedUndefined.cfg` file 
 
 2. **Update the Password**: Modify the `preseedServer.cfg`/`preseedDesktop.cfg`/`preseedUndefined.cfg` files to update the password as needed. It is recommended to use a hashed password, but you can also define it in plain text.
 
-3. **Modify the ISO**: Add the `preseed.cfg` file to the ISO using my script `Compileiso.sh`.
+3. **Modify the ISO**: Add the `preseedServer.cfg`/`preseedDesktop.cfg`/`preseedUndefined.cfg` file to the ISO using my script `Compileiso.sh`.
 
 4. **Execute the Script**: Make the sript executable and then RUN it. Using:
 ``
@@ -28,7 +28,7 @@ sudo ./Compileiso.sh
 
 ## Customization
 
-You can customize the `preseed.cfg` file to suit your specific needs. The file contains various settings that control different aspects of the installation process, such as partitioning, package selection, and network configuration.
+You can customize the `preseedServer.cfg`/`preseedDesktop.cfg`/`preseedUndefined.cfg` file to suit your specific needs. The file contains various settings that control different aspects of the installation process, such as partitioning, package selection, and network configuration.
 
 Refer to the [Debian Installation Guide](https://www.debian.org/releases/stable/amd64/apb.html.en) for detailed information on the available preseed options.
 
