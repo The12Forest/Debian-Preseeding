@@ -12,9 +12,9 @@ To use the `preseed.cfg` file for a Debian installation, follow these steps:
 
 1. **Download the Debian Installer ISO**: Obtain the Debian installer ISO from the [official Debian website](https://www.debian.org/distrib/).
 
-2. **Update the Password**: Modify the `preseed.cfg` file to update the password as needed. It is recommended to use a hashed password, but you can also define it in plain text.
+2. **Modify the `preseed.cfg`**: Change the password in the Preseedfile how you like it. I recomend a Hash bat you can alsow define it in planetext.
 
-3. **Modify the ISO**: Add the `preseed.cfg` file to the ISO. This can be done using tools like `genisoimage` or `xorriso`.
+3. **Modify the ISO**: Add the `preseed.cfg` file to the ISO. This can be done using tools like `genisoimage` or `xorriso`. If you don't know how, youtube will be your best frend.
 
 4. **Boot from the ISO**: Boot the target machine from the modified ISO.
 
@@ -28,6 +28,9 @@ To use the `preseed.cfg` file for a Debian installation, follow these steps:
 You can customize the `preseed.cfg` file to suit your specific needs. The file contains various settings that control different aspects of the installation process, such as partitioning, package selection, and network configuration.
 
 Refer to the [Debian Installation Guide](https://www.debian.org/releases/stable/amd64/apb.html.en) for detailed information on the available preseed options.
+
+## Other stuff
+
 
 ### Contributing
 
