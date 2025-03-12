@@ -8,23 +8,22 @@ Preseeding is a method for automating the Debian installation process. By provid
 
 ## Usage
 
-To use the `preseedServer.cfg`/`preseedDesktop.cfg`/`preseedUndefined.cfg` file for a Debian installation, follow these steps:
 
-1. **Download the Debian Installer ISO**: Obtain the Debian installer ISO from the [official Debian website](https://www.debian.org/distrib/) or use the built in download function for Debian 12.9.
 
-2. **Update the Password**: Modify the `preseedServer.cfg`/`preseedDesktop.cfg`/`preseedUndefined.cfg` files to update the password as needed. It is recommended to use a hashed password, but you can also define it in plain text.
+1. **Download the script**: Obtain the script using:
 
-3. **Modify the ISO**: Add the `preseedServer.cfg`/`preseedDesktop.cfg`/`preseedUndefined.cfg` file to the ISO using my script `Compileiso.sh`.
+    ``sudo git clone https://github.com/The12Forest/Debian-Preseeding.git``.
 
-4. **Execute the Script**: Make the sript executable and then RUN it. Using:
-``
-sudo chmod +x Compileiso.sh
-sudo ./Compileiso.sh
-``
+2. **Execute the Script**: Make the sript executable and then RUN it. Using:
 
-5. **Boot from the ISO**: Boot the target machine from the modified ISO.
+    ``sudo chmod +x Compileiso.sh``
 
-6. **Specify the Preseed File**: When prompted, go to the Extra options tab and use one of the new Crated entries.
+    ``sudo ./Compileiso.sh``
+3. **Copy the ISO to a USB Drive**: Copy the ISO to a USB Drive using Rufus or Balena etcher.
+
+4. **Boot from the ISO**: Boot the target machine from the modified ISO.
+
+5. **Specify the Preseed File**: When prompted, chose the type of instalation you want to make.
 
 ## Customization
 
