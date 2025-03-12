@@ -25,6 +25,7 @@ echo
 if [ "$YesORNoD" == "No" ]; then
     clear
     echo Files in your current directory:
+    echo
     ls
     echo
     echo "Please enter the name the Debian installer ISO:"
@@ -36,30 +37,40 @@ if [ "$YesORNo" == "Yes" ]; then
     isopreseedDesktopIn=preseedDesktop.cfg
     isopreseedServerIn=preseedServer.cfg
     isopreseedUndefinedIn=preseedUndefined.cfg
-#     isopreseedDesktopIn="$current_dir"/preseedDesktop.cfg
-#     isopreseedServerIn="$current_dir"/preseedServer.cfg
-#     isopreseedUndefinedIn="$current_dir"/preseedUndefined.cfg
 else
     clear
     echo Files in your current directory:
     ls
     echo
-    echo "Please select the preseed file for Server that you want to use:"
-    read -p "Enter the path to the file: " preseedServer
+    echo "Please select the preseed file for Server that you want to use (Neds to be in the working Dir.):"
+    read -p "Enter name of the file: " isopreseedServerIn
     clear
     echo Files in your current directory:
     ls
     echo
-    echo "Please select the preseed file for Desktop that you want to use:"
-    read -p "Enter the path to the file: " preseedDesktop
+    echo "Please select the preseed file for Desktop that you want to use (Neds to be in the working Dir.):"
+    read -p "Enter name of the file: " isopreseedDesktopIn
     clear
     echo Files in your current directory:
     ls
     echo
-    echo "Please select the preseed file for Undefined that you want to use:"
-    read -p "Enter the path to the file: " preseedDesktop
+    echo "Please select the preseed file for Undefined that you want to use (Neds to be in the working Dir.):"
+    read -p "Enter name of the file: " isopreseedUndefinedIn
 fi
 clear
+isoOut="preseed-$(basename "$iso_path")"
+
+#Getting sudo
+echo "Please accept the sudo to execute the script!"
+echo
+echo
+echo
+echo
+sudo mkdir /sudotestpreseed
+sudo rm -rf /sudotestpreseed
+clear
+
+# Install required packages
 printf "Instaling required packages"
 sleep 0.2
 printf "."
@@ -73,17 +84,33 @@ sleep 0.2
 printf "."
 echo
 
-# Install required packages
 if [ "$YesORNoD" == "Yes" ]; then
     sudo apt-get install genisoimage isolinux syslinux-utils squashfs-tools curl -y
     clear
-    curl -O https://debian.ethz.ch/debian-cd/12.9.0/amd64/iso-cd/debian-12.9.0-amd64-netinst.iso
-    iso_path=debian-12.9.0-amd64-netinst.iso
-else
+else 
     sudo apt-get install genisoimage isolinux syslinux-utils squashfs-tools -y
+    clear
 fi
 
-isoOut="preseed-$(basename "$iso_path")"
+# Download Debian Image
+if [ "$YesORNoD" == "Yes" ]; then
+    printf "Download Debian Image"
+    sleep 0.3
+    printf "."
+    sleep 0.3
+    printf "."
+    sleep 0.3
+    printf "."
+    sleep 0.3
+    printf "."
+    sleep 0.3
+    printf "."
+    echo
+    clear
+
+    curl -O https://debian.ethz.ch/debian-cd/12.9.0/amd64/iso-cd/debian-12.9.0-amd64-netinst.iso
+    iso_path=debian-12.9.0-amd64-netinst.iso
+fi
 
 # Creating Working Directory
 clear
@@ -107,14 +134,17 @@ sudo mount -o loop,rw "$iso_path" /mnt/iso
 sudo cp -rT /mnt/iso/ /mnt/iso-new/
 sudo umount /mnt/iso
 
+cd $current_dir
+
 # Copy Preseed Files
 sudo cp "$isopreseedDesktopIn" /mnt/iso-new
-sudo cp "$preseedServer" /mnt/iso-new
-sudo cp "$preseedUndefined" /mnt/iso-new
+sudo cp "$isopreseedServerIn" /mnt/iso-new
+sudo cp "$isopreseedUndefinedIn" /mnt/iso-new
 cd /mnt/iso-new
-sudo mv "$preseedDesktop" preseeddesktop1.cfg
-sudo mv "$preseedServer" preseedserver1.cfg
-sudo mv "$preseedUndefined" preseedundefined1.cfg
+sudo mv "$isopreseedDesktopIn" preseeddesktop1.cfg
+sudo mv "$isopreseedServerIn" preseedserver1.cfg
+sudo mv "$isopreseedUndefinedIn" preseedundefined1.cfg
+sleep 0.5
 
 # Creating installer Menu entries
 sudo tee -a /mnt/iso-new/isolinux/adtxt.cfg > /dev/null <<EOF
@@ -173,7 +203,7 @@ sleep 0.2
 printf "."
 sleep 0.7
 
-# Backtalk to the user
+# Backtalk to the user (Endscreen)
 clear
 echo "Custom Debian ISO created:"
 echo
@@ -187,7 +217,6 @@ printf "Size:             \t%s\n" "$(du -h "$isoOut" | cut -f1)"
 printf "Permissions:      \t%s\n" "$(stat -c %a "$isoOut")"
 printf "Owner:            \t%s\n" "$(stat -c %U "$isoOut")"
 printf "Group:            \t%s\n" "$(stat -c %G "$isoOut")"
-echo
 echo
 echo Hashes:
 printf $MD5
