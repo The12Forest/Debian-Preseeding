@@ -5,9 +5,11 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 sudo apt-get update
+clear
+echo "Deleting old ISO files..."
 rm -f ./preseed-*.iso
 if ls ./preseed-*.iso 1>/dev/null 2>&1; then
-    echo "Faild to delete existion iso files in the Working dir."
+    echo "Faild to delete existing iso files in the Working dir."
     echo "Please close all programms that might have open the iso."
     echo "If all fails, a reboot might help."
     exit 1
@@ -51,8 +53,12 @@ while true; do
     fi
 done
 while true; do
-    read -p "Do you want to use a custom background?         (Yes or No):   " YesORNoB
+    read -p "Do you want to use the custom background?       (Yes or No):   " YesORNoB
     if [[ "$YesORNoB" =~ ^(Yes|No)$ ]]; then
+        # read -p "Do you want to use a custom background image?   (Yes or No):   " YesORNoBB
+        # if [[ "$YesORNoBB" =~ ^(Yes|No)$ ]]; then
+        #     break
+        # else
         break
     else
         echo "Invalid input. Please enter 'Yes' or 'No'."
@@ -116,11 +122,11 @@ if [ "$YesORNoH" == "Yes" ]; then
     read -p "Set the hostname for the server installed with this ISO (Example 'server.local'. Leve empty for default.):              " hostnames
     read -p "Set the hostname for the desktops installed with this ISO (Example 'desktop.local'. Leve empty for default.):           " hostnamed
     read -p "Set the hostname for the other machines installed with this ISO (Example 'undefined.local'. Leve empty for default.):   " hostnameu
-    
-    hostnames=${hostnames:-"server.local"}
-    hostnamed=${hostnamed:-"desktop.local"}
-    hostnameu=${hostnameu:-"undefined.local"}
 fi
+hostnames=${hostnames:-"server.local"}
+hostnamed=${hostnamed:-"desktop.local"}
+hostnameu=${hostnameu:-"undefined.local"}
+
 
 # Install required packages
 clear
@@ -190,7 +196,9 @@ if [ "$YesORNoD" == "Yes" ]; then
     sleep 0.3
     printf "."
     echo
-    clear
+    echo "Please wait..."
+    echo
+    
 
     if [ "$DBVersionCHOICE" == "1" ]; then
         version="12.11.0"
@@ -270,6 +278,7 @@ sudo mkdir -p /mnt/iso
 sudo mkdir -p /mnt/iso-new
 #sudo umount /mnt/iso 2>/dev/null
 sudo mount -o loop,rw "$iso_path" /mnt/iso
+echo "Copying ISO content to working directory..."
 sudo cp -rT /mnt/iso/ /mnt/iso-new/
 sudo umount /mnt/iso
 
@@ -283,9 +292,21 @@ sudo mv "$isopreseedDesktopIn" preseeddesktop1.cfg
 sudo mv "$isopreseedServerIn" preseedserver1.cfg
 sudo mv "$isopreseedUndefinedIn" preseedundefined1.cfg
 
+# Copying the background image
+if [ "$YesORNoB" == "Yes" ]; then
+    cd "$script_dir"
+    # echo "$script_dir"
+    sudo rm -rf /mnt/iso-new/isolinux/splash.png
+    sudo cp "./splash.png" /mnt/iso-new/isolinux
+    # echo finished
+
+fi
+# read -p "Press Enter to continue..."
+
 # Editing Preseed Files
 if [ "$YesORNoU" == "Yes" ]; then
-    # Encrypting Passwords
+    cd "/mnt/iso-new"
+    # Passwörter verschlüsseln
     ENCRYPTED_USER_PASS=$(echo -n "$USER_PASS" | mkpasswd -m sha-512 -s)
     ENCRYPTED_ROOT_PASS=$(echo -n "$ROOT_PASSWORD" | mkpasswd -m sha-512 -s)
 
@@ -293,9 +314,12 @@ if [ "$YesORNoU" == "Yes" ]; then
     FILE="preseedserver1.cfg"
     HOSTNAME=$hostnames
     if [ "$YesORNoH" == "Yes" ]; then
-        sed -i "s|^d-i netcfg/get_hostname string .*|d-i netcfg/get_hostname string $HOSTNAME|" "$FILE"
+        # Hostname/Domain-Zeilen löschen und nur die force-Zeile einfügen
+        sed -i "/^#*d-i netcfg\/get_hostname string .*/d" "$FILE"
+        sed -i "/^#*d-i netcfg\/get_domain string .*/d" "$FILE"
+        sed -i "/^#*d-i netcfg\/hostname string .*/d" "$FILE"
+        echo "d-i netcfg/hostname string $HOSTNAME" >> "$FILE"
     fi
-    sed -i "s|^d-i netcfg/get_hostname string .*|d-i netcfg/get_hostname string $HOSTNAME|" "$FILE"
     sed -i "s|^d-i passwd/username string .*|d-i passwd/username string $USER_NAME|" "$FILE"
     sed -i "s|^d-i passwd/user-fullname string .*|d-i passwd/user-fullname string $FULL_USER_NAME|" "$FILE"
     sed -i "/^#*d-i passwd\/root-password /d" "$FILE"
@@ -311,7 +335,10 @@ if [ "$YesORNoU" == "Yes" ]; then
     FILE="preseeddesktop1.cfg"
     HOSTNAME=$hostnamed
     if [ "$YesORNoH" == "Yes" ]; then
-        sed -i "s|^d-i netcfg/get_hostname string .*|d-i netcfg/get_hostname string $HOSTNAME|" "$FILE"
+        sed -i "/^#*d-i netcfg\/get_hostname string .*/d" "$FILE"
+        sed -i "/^#*d-i netcfg\/get_domain string .*/d" "$FILE"
+        sed -i "/^#*d-i netcfg\/hostname string .*/d" "$FILE"
+        echo "d-i netcfg/hostname string $HOSTNAME" >> "$FILE"
     fi
     sed -i "s|^d-i passwd/username string .*|d-i passwd/username string $USER_NAME|" "$FILE"
     sed -i "s|^d-i passwd/user-fullname string .*|d-i passwd/user-fullname string $FULL_USER_NAME|" "$FILE"
@@ -328,7 +355,10 @@ if [ "$YesORNoU" == "Yes" ]; then
     FILE="preseedundefined1.cfg"
     HOSTNAME=$hostnameu
     if [ "$YesORNoH" == "Yes" ]; then
-        sed -i "s|^d-i netcfg/get_hostname string .*|d-i netcfg/get_hostname string $HOSTNAME|" "$FILE"
+        sed -i "/^#*d-i netcfg\/get_hostname string .*/d" "$FILE"
+        sed -i "/^#*d-i netcfg\/get_domain string .*/d" "$FILE"
+        sed -i "/^#*d-i netcfg\/hostname string .*/d" "$FILE"
+        echo "d-i netcfg/hostname string $HOSTNAME" >> "$FILE"
     fi
     sed -i "s|^d-i passwd/username string .*|d-i passwd/username string $USER_NAME|" "$FILE"
     sed -i "s|^d-i passwd/user-fullname string .*|d-i passwd/user-fullname string $FULL_USER_NAME|" "$FILE"
@@ -341,6 +371,7 @@ if [ "$YesORNoU" == "Yes" ]; then
     echo "d-i passwd/root-password-crypted password $ENCRYPTED_ROOT_PASS" >> "$FILE"
     echo "d-i passwd/user-password-crypted password $ENCRYPTED_USER_PASS" >> "$FILE"
 fi
+
 
 # Creating installer Menu entries
 sudo tee -a /mnt/iso-new/isolinux/txt.cfg > /dev/null <<EOF
@@ -383,15 +414,10 @@ menuentry "Automatic Undefined Install" {
 }
 EOF
 else
-  echo "GRUB-Konfigurationsdatei (grub.cfg) nicht gefunden."
+  echo "GRUB-Konfigurationsdatei grub.cfg nicht gefunden."
   echo "The Grub configuration cudd not be added to the ISO."
   echo "sleep 10 seconds"
   sleep 10
-fi
-
-if [ "$YesORNoD" == "No" ]; then
-    sudo rm -rf /mnt/iso-new/isolinux/splash.png
-    sudo cp "$script_dir/splash.png" /mnt/iso-new/isolinux
 fi
 
 # Creating the new ISO
@@ -423,13 +449,13 @@ sudo rm -rf ./.temp
 
 clear
 printf "Preparing end Screen"
-MD5="MD5:\t\t\t$(md5sum "$isoOut" | cut -d' ' -f1)\n"
+MD5="MD5:\t\t\t\t$(md5sum "$isoOut" | cut -d' ' -f1)\n"
 printf "."
-SHA1="SHA1:\t\t\t$(sha1sum "$isoOut" | cut -d' ' -f1)\n"
+SHA1="SHA1:\t\t\t\t$(sha1sum "$isoOut" | cut -d' ' -f1)\n"
 printf "."
-SHA256="SHA256:\t\t\t$(sha256sum "$isoOut" | cut -d' ' -f1)\n"
+SHA256="SHA256:\t\t\t\t$(sha256sum "$isoOut" | cut -d' ' -f1)\n"
 printf "."
-SHA512="SHA512:\t\t\t$(sha512sum "$isoOut" | cut -d' ' -f1)\n"
+SHA512="SHA512:\t\t\t\t$(sha512sum "$isoOut" | cut -d' ' -f1)\n"
 printf "."
 sleep 0.2
 printf "."
@@ -439,23 +465,23 @@ sleep 0.7
 clear
 echo "Custom Debian ISO created:"
 echo
-printf "Script directory: \t%s\n" "$script_dir"
-printf "ISO:              \t%s\n" "$iso_path"
-printf "Preseed Desktop:  \t%s\n" "$isopreseedDesktopIn"
-printf "Preseed Server:   \t%s\n" "$isopreseedServerIn"
-printf "Preseed Undefined:\t%s\n" "$isopreseedUndefinedIn"
-printf "Path:             \t%s\n" "$current_dir"
-printf "Full Path:        \t%s/%s\n" "$current_dir" "$isoOut"
-printf "Default Size:     \t%s\n" "$(du -h "$iso_path" | cut -f1)"
-printf "Preseed Size:     \t%s\n" "$(du -h "$isoOut" | cut -f1)"
-printf "Permissions:      \t%s\n" "$(stat -c %a "$isoOut")"
-printf "Owner:            \t%s\n" "$(stat -c %U "$isoOut")"
-printf "Group:            \t%s\n" "$(stat -c %G "$isoOut")"
+printf "Script directory: \t\t%s\n" "$script_dir"
+printf "ISO:              \t\t%s\n" "$iso_path"
+printf "Preseed Desktop:  \t\t%s\n" "$isopreseedDesktopIn"
+printf "Preseed Server:   \t\t%s\n" "$isopreseedServerIn"
+printf "Preseed Undefined:\t\t%s\n" "$isopreseedUndefinedIn"
+printf "Path:             \t\t%s\n" "$current_dir"
+printf "Full Path:        \t\t%s/%s\n" "$current_dir" "$isoOut"
+printf "Default Size:     \t\t%s\n" "$(du -h "$iso_path" | cut -f1)"
+printf "Preseed Size:     \t\t%s\n" "$(du -h "$isoOut" | cut -f1)"
+printf "Permissions:      \t\t%s\n" "$(stat -c %a "$isoOut")"
+printf "Owner:            \t\t%s\n" "$(stat -c %U "$isoOut")"
+printf "Group:            \t\t%s\n" "$(stat -c %G "$isoOut")"
 echo
 echo "Original Debian ISO Information:"
-printf "Version:          \t%s\n" "$version"
-printf "SHA256:           \t%s\n" "$EXPECTED_HASH"
-printf "Download url:     \t%s\n" "$BASE_URL"
+printf "Version:          \t\t%s\n" "$version"
+printf "SHA256:           \t\t%s\n" "$EXPECTED_HASH"
+printf "Download url:     \t\t%s\n" "$BASE_URL"
 echo
 echo Hashes of the ISO:
 printf $MD5
