@@ -122,10 +122,11 @@ if [ "$YesORNoH" == "Yes" ]; then
     read -p "Set the hostname for the server installed with this ISO (Example 'server.local'. Leve empty for default.):              " hostnames
     read -p "Set the hostname for the desktops installed with this ISO (Example 'desktop.local'. Leve empty for default.):           " hostnamed
     read -p "Set the hostname for the other machines installed with this ISO (Example 'undefined.local'. Leve empty for default.):   " hostnameu
+    hostnames=${hostnames:-"server.local"}
+    hostnamed=${hostnamed:-"desktop.local"}
+    hostnameu=${hostnameu:-"undefined.local"}
 fi
-hostnames=${hostnames:-"server.local"}
-hostnamed=${hostnamed:-"desktop.local"}
-hostnameu=${hostnameu:-"undefined.local"}
+
 
 
 # Install required packages
@@ -253,7 +254,7 @@ printf "."
 sleep 0.5
 printf "."
 echo
-clear
+
 
 
 
