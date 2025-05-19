@@ -6,7 +6,14 @@ if [ "$EUID" -ne 0 ]; then
 fi
 sudo apt-get update
 rm -f ./preseed-*.iso
+if ls ./preseed-*.iso 1>/dev/null 2>&1; then
+    echo "Faild to delete existion iso files in the Working dir."
+    echo "Please close all programms that might have open the iso."
+    echo "If all fails, a reboot might help."
+    exit 1
+fi
 current_dir=$(pwd)
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 clear
 while true; do
     read -p "Do you want to use the predefined preseed files (Yes or No):   " YesORNo
@@ -18,7 +25,7 @@ while true; do
 done
 
 while true; do
-    read -p "Do you want to download Debian 12.9 (Yes or No):               " YesORNoD
+    read -p "Do you want to download Debian                  (Yes or No):   " YesORNoD
     if [[ "$YesORNoD" =~ ^(Yes|No)$ ]]; then
         break
     else
@@ -27,8 +34,8 @@ while true; do
 done
 
 while true; do
-    read -p "Do you want to setup username and passwords? (Yes or No):      " YesORNoU
-    if [[ "$YesORNoD" =~ ^(Yes|No)$ ]]; then
+    read -p "Do you want to setup username and passwords?    (Yes or No):   " YesORNoU
+    if [[ "$YesORNoU" =~ ^(Yes|No)$ ]]; then
         break
     else
         echo "Invalid input. Please enter 'Yes' or 'No'."
@@ -36,14 +43,21 @@ while true; do
 done
 
 while true; do
-    read -p "Do you want to setup hostnames? (Yes or No):                   " YesORNoH
-    if [[ "$YesORNoD" =~ ^(Yes|No)$ ]]; then
+    read -p "Do you want to setup hostnames?                 (Yes or No):   " YesORNoH
+    if [[ "$YesORNoH" =~ ^(Yes|No)$ ]]; then
         break
     else
         echo "Invalid input. Please enter 'Yes' or 'No'."
     fi
 done
-
+while true; do
+    read -p "Do you want to use a custom background?         (Yes or No):   " YesORNoB
+    if [[ "$YesORNoB" =~ ^(Yes|No)$ ]]; then
+        break
+    else
+        echo "Invalid input. Please enter 'Yes' or 'No'."
+    fi
+done
 
 # Setting up wariables
 echo
@@ -132,7 +146,38 @@ else
 fi
 
 # Download Debian Image
+
+
 if [ "$YesORNoD" == "Yes" ]; then
+    clear
+    echo "Download Debian Image"
+    echo "Mirror: debian.ethz.ch  (Switzerland)"
+    echo " "
+    echo "Choose a number from 1 to 5:"
+    echo "1) Debian 12.11.0  (newest, maby not working)"
+    echo "2) Debian 11.07.0"
+    echo "3) Debian 10.10.0"
+    echo "4) Debian 09.09.0"
+    echo "5) Debian 08.08.0"
+
+    while true; do
+        read -p "Enter:                                                     " DBVersionCHOICE
+        if [[ "$DBVersionCHOICE" =~ ^[1-5]$ ]]; then
+            break
+        else
+            echo "Invalid input. Please enter a number between 1 and 5."
+        fi
+    done
+    while true; do
+        read -p "Do you want to delete the iso at the end? (Yes or No):     " YesORNoIsoDel
+        if [[ "$YesORNoIsoDel" =~ ^(Yes|No)$ ]]; then
+            break
+        else
+            echo "Invalid input. Please enter 'Yes' or 'No'."
+        fi
+    done
+
+    clear
     printf "Download Debian Image"
     sleep 0.3
     printf "."
@@ -147,9 +192,62 @@ if [ "$YesORNoD" == "Yes" ]; then
     echo
     clear
 
-    curl -O https://debian.ethz.ch/debian-cd/12.9.0/amd64/iso-cd/debian-12.9.0-amd64-netinst.iso
+    if [ "$DBVersionCHOICE" == "1" ]; then
+        version="12.11.0"
+        EXPECTED_HASH="30ca12a15cae6a1033e03ad59eb7f66a6d5a258dcf27acd115c2bd42d22640e8"
+    elif [ "$DBVersionCHOICE" == "2" ]; then
+        version="11.7.0"
+        EXPECTED_HASH="eb3f96fd607e4b67e80f4fc15670feb7d9db5be50f4ca8d0bf07008cb025766b"
+    elif [ "$DBVersionCHOICE" == "3" ]; then
+        version="10.10.0"
+        EXPECTED_HASH="c433254a7c5b5b9e6a05f9e1379a0bd6ab3323f89b56537b684b6d1bd1f8b6ad"
+    elif [ "$DBVersionCHOICE" == "4" ]; then
+        version="9.9.0"
+        EXPECTED_HASH="d4a22c81c76a66558fb92e690ef70a5d67c685a08216701b15746586520f6e8e"
+    elif [ "$DBVersionCHOICE" == "5" ]; then
+        version="8.8.0"
+        EXPECTED_HASH="2c07ff8cc766767610566297b8729740f923735e790c8e78b718fb93923b448e"
+    fi
+    
+    BASE_URL="https://debian.ethz.ch/debian-cd/$version/amd64/iso-cd/debian-$version-amd64-netinst.iso"
+    iso_path="debian-$version-amd64-netinst.iso"
+    
+    curl -O "$BASE_URL"
+
+    clear
+    echo "Verifying checksum..."
+    ACTUAL_HASH=$(sha256sum "$iso_path" | awk '{print $1}')
+    if [ "$EXPECTED_HASH" == "$ACTUAL_HASH" ]; then
+        echo "Checksum verification PASSED."
+    else
+        clear
+        echo "Checksum verification FAILED!"
+        echo "ISO:      $iso_path"
+        echo "Dwnload:  $BASE_URL"
+        echo "Version:  $version"
+        echo "Expected: $EXPECTED_HASH"
+        echo "Actual:   $ACTUAL_HASH"
+        exit 1
+    fi
+
 fi
 isoOut="preseed-$(basename "$iso_path")"
+clear
+printf "The script won't ask for any more input."
+sleep 0.5
+printf "."
+sleep 0.5
+printf "."
+sleep 0.5
+printf "."
+sleep 0.5
+printf "."
+sleep 0.5
+printf "."
+echo
+clear
+
+
 
 # Creating Working Directory
 clear
@@ -170,7 +268,7 @@ echo
 
 sudo mkdir -p /mnt/iso
 sudo mkdir -p /mnt/iso-new
-sudo umount /mnt/iso 2>/dev/null
+#sudo umount /mnt/iso 2>/dev/null
 sudo mount -o loop,rw "$iso_path" /mnt/iso
 sudo cp -rT /mnt/iso/ /mnt/iso-new/
 sudo umount /mnt/iso
@@ -263,6 +361,39 @@ label auto-wipe-undefined
 
 EOF
 
+GRUB_CFG="/mnt/iso-new/boot/grub/grub.cfg"
+if [ -f "$GRUB_CFG" ]; then
+  cat <<EOF | sudo tee -a "$GRUB_CFG" > /dev/null
+menuentry "Automatic Server Install" {
+    set gfxpayload=keep
+    linux /install.amd/vmlinuz auto=true priority=critical file=/cdrom/preseedserver1.cfg --- quiet
+    initrd /install.amd/initrd.gz
+}
+
+menuentry "Automatic Desktop Install" {
+    set gfxpayload=keep
+    linux /install.amd/vmlinuz auto=true priority=critical file=/cdrom/preseeddesktop1.cfg --- quiet
+    initrd /install.amd/initrd.gz
+}
+
+menuentry "Automatic Undefined Install" {
+    set gfxpayload=keep
+    linux /install.amd/vmlinuz auto=true priority=critical file=/cdrom/preseedundefined1.cfg --- quiet
+    initrd /install.amd/initrd.gz
+}
+EOF
+else
+  echo "GRUB-Konfigurationsdatei (grub.cfg) nicht gefunden."
+  echo "The Grub configuration cudd not be added to the ISO."
+  echo "sleep 10 seconds"
+  sleep 10
+fi
+
+if [ "$YesORNoD" == "No" ]; then
+    sudo rm -rf /mnt/iso-new/isolinux/splash.png
+    sudo cp "$script_dir/splash.png" /mnt/iso-new/isolinux
+fi
+
 # Creating the new ISO
 clear
 printf "Creating ISO Image"
@@ -289,6 +420,7 @@ sudo rm -rf /mnt/iso
 sudo rm -rf /mnt/iso-new
 sudo rm -rf ./.temp
 
+
 clear
 printf "Preparing end Screen"
 MD5="MD5:\t\t\t$(md5sum "$isoOut" | cut -d' ' -f1)\n"
@@ -307,6 +439,7 @@ sleep 0.7
 clear
 echo "Custom Debian ISO created:"
 echo
+printf "Script directory: \t%s\n" "$script_dir"
 printf "ISO:              \t%s\n" "$iso_path"
 printf "Preseed Desktop:  \t%s\n" "$isopreseedDesktopIn"
 printf "Preseed Server:   \t%s\n" "$isopreseedServerIn"
@@ -318,6 +451,11 @@ printf "Preseed Size:     \t%s\n" "$(du -h "$isoOut" | cut -f1)"
 printf "Permissions:      \t%s\n" "$(stat -c %a "$isoOut")"
 printf "Owner:            \t%s\n" "$(stat -c %U "$isoOut")"
 printf "Group:            \t%s\n" "$(stat -c %G "$isoOut")"
+echo
+echo "Original Debian ISO Information:"
+printf "Version:          \t%s\n" "$version"
+printf "SHA256:           \t%s\n" "$EXPECTED_HASH"
+printf "Download url:     \t%s\n" "$BASE_URL"
 echo
 echo Hashes of the ISO:
 printf $MD5
@@ -343,3 +481,10 @@ echo "      Encrypted:              $ENCRYPTED_USER_PASS"
 echo
 echo
 echo "Done! Thank you for using this script. Have a nice day!"
+
+
+
+if [ "$YesORNoIsoDel" == "Yes" ]; then
+    #echo "Deleting the original ISO..."
+    sudo rm -rf "$iso_path"
+fi
