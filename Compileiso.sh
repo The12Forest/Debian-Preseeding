@@ -284,6 +284,7 @@ sudo cp -rT /mnt/iso/ /mnt/iso-new/
 sudo umount /mnt/iso
 
 # Copy Preseed Files
+echo "Building content for ISO Image..."
 cd "$current_dir"
 sudo cp "$isopreseedDesktopIn" /mnt/iso-new
 sudo cp "$isopreseedServerIn" /mnt/iso-new
@@ -329,8 +330,13 @@ if [ "$YesORNoU" == "Yes" ]; then
     sed -i "/^#*d-i passwd\/user-password /d" "$FILE"
     sed -i "/^#*d-i passwd\/user-password-again /d" "$FILE"
     sed -i "/^#*d-i passwd\/user-password-crypted /d" "$FILE"
+    sed -i '/usermod -aG sudo [^ ]\+/d' "$FILE"
     echo "d-i passwd/root-password-crypted password $ENCRYPTED_ROOT_PASS" >> "$FILE"
     echo "d-i passwd/user-password-crypted password $ENCRYPTED_USER_PASS" >> "$FILE"
+    if [ "$YesORNoU" == "Yes" ]; then
+        sed -i '/usermod -aG sudo [^ ]\+/d' "$FILE"
+        echo "d-i preseed/late_command string in-target usermod -aG sudo $USER_NAME" >> "$FILE"
+    fi
 
     # Desktop
     FILE="preseeddesktop1.cfg"
@@ -351,6 +357,10 @@ if [ "$YesORNoU" == "Yes" ]; then
     sed -i "/^#*d-i passwd\/user-password-crypted /d" "$FILE"
     echo "d-i passwd/root-password-crypted password $ENCRYPTED_ROOT_PASS" >> "$FILE"
     echo "d-i passwd/user-password-crypted password $ENCRYPTED_USER_PASS" >> "$FILE"
+    if [ "$YesORNoU" == "Yes" ]; then
+        sed -i '/usermod -aG sudo [^ ]\+/d' "$FILE"
+        echo "d-i preseed/late_command string in-target usermod -aG sudo $USER_NAME" >> "$FILE"
+    fi
 
     # Undefined
     FILE="preseedundefined1.cfg"
@@ -371,7 +381,15 @@ if [ "$YesORNoU" == "Yes" ]; then
     sed -i "/^#*d-i passwd\/user-password-crypted /d" "$FILE"
     echo "d-i passwd/root-password-crypted password $ENCRYPTED_ROOT_PASS" >> "$FILE"
     echo "d-i passwd/user-password-crypted password $ENCRYPTED_USER_PASS" >> "$FILE"
+    if [ "$YesORNoU" == "Yes" ]; then
+        sed -i '/usermod -aG sudo [^ ]\+/d' "$FILE"
+        echo "d-i preseed/late_command string in-target usermod -aG sudo $USER_NAME" >> "$FILE"
+    fi
 fi
+
+
+
+
 
 
 # Creating installer Menu entries
